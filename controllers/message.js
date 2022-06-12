@@ -1,13 +1,14 @@
 const { findOne } = require("../Models/Message");
 const Model = require("../Models/Message");
-
+const { socket } = require("../socket");
+const host = process.env.HOST;
 async function addMessage(user, message, chat, file) {
   try {
     if (!user || !message || !chat) {
       console.error("[messageCroller] no hat usuario o menssaje");
       return;
     } else {
-      let fileUrl = `http://localhost:3000/files/${file.filename}`;
+      let fileUrl = `${host}/files/${file.filename}`;
 
       const fullMessage = {
         chat: chat,
@@ -16,9 +17,11 @@ async function addMessage(user, message, chat, file) {
         file: fileUrl,
         date: new Date(),
       };
+
       const myMessage = new Model(fullMessage);
       myMessage.save();
 
+      socket.io.emit("message", fullMessage);
       return fullMessage;
     }
   } catch (error) {
